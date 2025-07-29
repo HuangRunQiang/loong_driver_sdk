@@ -658,6 +658,12 @@ namespace DriverSDK
             int j = 0;
             while (j < dofAll)
             {
+           
+                // DriverRxData 是 drivers[j] 的 rx 数据类型，代表驱动器的接收数据结构体
+                // 通过 drivers[j].rx->TargetPosition 等成员可以访问和设置目标位置、速度、扭矩等
+                // 这里 config 只是配置数据交换，具体 DriverRxData 的使用见如下例子：
+                // 例如：drivers[j].rx->TargetPosition = 1000; // 设置目标位置
+                // 例如：int pos = drivers[j].rx->TargetPosition; // 读取目标位置
                 switch (drivers[j].config("ECAT", order, i, rxPDOSwaps[i], txPDOSwaps[i]))
                 {
                 case 2:
