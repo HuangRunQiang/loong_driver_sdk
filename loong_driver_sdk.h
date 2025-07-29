@@ -21,9 +21,9 @@
 #include <string>
 #include <cmath>
 
-namespace DriverSDK
+namespace DriverSDK     
 {
-    float const Pi = std::acos(-1); // 圆周率
+    float const Pi = std::acos(-1); // 圆周率Π
 
     struct imuStruct // IMU 结构体
     {
