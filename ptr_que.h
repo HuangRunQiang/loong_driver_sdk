@@ -26,58 +26,77 @@
 #define QUE_PRI_LOW 0
 #define QUE_PRI_HIGH 1
 
-template<typename T, int const N = MAX_QUE_SIZE>
-class PtrQue{
+template <typename T, int const N = MAX_QUE_SIZE>
+class PtrQue
+{
 private:
-    std::deque<T*> queue;
+    std::deque<T *> queue;
     size_t maxQueueSize;
     pthread_mutex_t mutex;
     sem_t semWrite, semRead;
-    int mutexInit(pthread_mutex_t* mutex){
+    int mutexInit(pthread_mutex_t *mutex)
+    {
         pthread_mutexattr_t mutexAttribute;
         pthread_mutexattr_init(&mutexAttribute);
-        if(pthread_mutexattr_setrobust(&mutexAttribute, PTHREAD_MUTEX_ROBUST) == 0){
-            if(pthread_mutexattr_settype(&mutexAttribute, PTHREAD_MUTEX_ERRORCHECK) == 0){
-                if(pthread_mutex_init(mutex, &mutexAttribute) == 0){
+        if (pthread_mutexattr_setrobust(&mutexAttribute, PTHREAD_MUTEX_ROBUST) == 0)
+        {
+            if (pthread_mutexattr_settype(&mutexAttribute, PTHREAD_MUTEX_ERRORCHECK) == 0)
+            {
+                if (pthread_mutex_init(mutex, &mutexAttribute) == 0)
+                {
                     printf("mutex initialized\n");
                     pthread_mutexattr_destroy(&mutexAttribute);
                     return 0;
-                }else{
+                }
+                else
+                {
                     printf("pthread_mutex_init() failed\n");
                 }
-            }else{
+            }
+            else
+            {
                 printf("pthread_mutexattr_settype() failed\n");
             }
-        }else{
+        }
+        else
+        {
             printf("pthread_mutexattr_setrobust_np() failed\n");
         }
         pthread_mutexattr_destroy(&mutexAttribute);
         return -1;
     }
+
 public:
-    PtrQue(){
+    PtrQue()
+    {
         maxQueueSize = N;
         mutexInit(&mutex);
         sem_init(&semWrite, 0, maxQueueSize);
         sem_init(&semRead, 0, 0);
     }
-    void put(T* msg, int const priority = QUE_PRI_LOW){
+    void put(T *msg, int const priority = QUE_PRI_LOW)
+    {
         sem_wait(&semWrite);
         pthread_mutex_lock(&mutex);
-        if(priority == QUE_PRI_LOW){
+        if (priority == QUE_PRI_LOW)
+        {
             queue.push_back(msg);
-        }else if(priority == QUE_PRI_HIGH){
+        }
+        else if (priority == QUE_PRI_HIGH)
+        {
             queue.push_front(msg);
         }
         pthread_mutex_unlock(&mutex);
         sem_post(&semRead);
     }
-    T* get(){
-        T* msg = nullptr;
+    T *get()
+    {
+        T *msg = nullptr;
         sem_wait(&semRead);
         pthread_mutex_lock(&mutex);
         auto it = queue.begin();
-        if(it != queue.end()){
+        if (it != queue.end())
+        {
             msg = *it;
             queue.pop_front();
         }
@@ -85,12 +104,15 @@ public:
         sem_post(&semWrite);
         return msg;
     }
-    T* get_nonblocking(){
-        T* msg = nullptr;
-        if(sem_trywait(&semRead) == 0){
+    T *get_nonblocking()
+    {
+        T *msg = nullptr;
+        if (sem_trywait(&semRead) == 0)
+        {
             pthread_mutex_lock(&mutex);
             auto it = queue.begin();
-            if(it != queue.end()){
+            if (it != queue.end())
+            {
                 msg = *it;
                 queue.pop_front();
             }
@@ -99,17 +121,20 @@ public:
         }
         return msg;
     }
-    size_t size(){
+    size_t size()
+    {
         size_t size = 0;
         pthread_mutex_lock(&mutex);
         size = queue.size();
         pthread_mutex_unlock(&mutex);
         return size;
     }
-    size_t maxSize(){
+    size_t maxSize()
+    {
         return maxQueueSize;
     }
-    ~PtrQue(){
+    ~PtrQue()
+    {
         sem_destroy(&semRead);
         sem_destroy(&semWrite);
         pthread_mutex_destroy(&mutex);

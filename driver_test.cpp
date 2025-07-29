@@ -19,8 +19,9 @@
 #include <stdio.h>
 #include <unistd.h>
 
-int main(int argc, char** argv){
-    DriverSDK::DriverSDK& driverSDK = DriverSDK::DriverSDK::instance();
+int main(int argc, char **argv)
+{
+    DriverSDK::DriverSDK &driverSDK = DriverSDK::DriverSDK::instance();
     printf("loong_driver_sdk version: %s\n", driverSDK.version().c_str());
     driverSDK.setCPU(2);
     std::vector<unsigned short> maxCurr = {
@@ -29,8 +30,7 @@ int main(int argc, char** argv){
         1000, 1000, 1000, 1000, 1000, 600, 600,
         1000, 1000, 1000, 1000, 1000, 600, 600,
         1000, 1000, 1000,
-        600, 600
-    };
+        600, 600};
     driverSDK.setMaxCurr(maxCurr);
     std::vector<char> mode = {
         8, 8, 8, 8, 8, 8,
@@ -38,26 +38,29 @@ int main(int argc, char** argv){
         8, 8, 8, 8, 8, 8, 8,
         8, 8, 8, 8, 8, 8, 8,
         8, 8, 8,
-        8, 8
-    };
+        8, 8};
     driverSDK.setMode(mode);
     driverSDK.init("configuration.xml");
     std::vector<int> activeMotors = driverSDK.getActiveMotors();
-    int i = 0, j = 0, motorNr = driverSDK.getTotalMotorNr(), digitNr = driverSDK.getLeftDigitNr() + driverSDK.getRightDigitNr();;
+    int i = 0, j = 0, motorNr = driverSDK.getTotalMotorNr(), digitNr = driverSDK.getLeftDigitNr() + driverSDK.getRightDigitNr();
+    ;
     printf("%d | %d: ", digitNr, motorNr);
-    while(i < activeMotors.size()){
+    while (i < activeMotors.size())
+    {
         printf("%d ", activeMotors[i]);
         i++;
     }
     printf("\n");
     std::vector<DriverSDK::motorSDOClass> sdoData;
     i = 0;
-    while(i < motorNr){
+    while (i < motorNr)
+    {
         sdoData.emplace_back(i);
         i++;
     }
     i = 0;
-    while(i < motorNr){
+    while (i < motorNr)
+    {
         driverSDK.fillSDO(sdoData[i], "ActualPosition");
         i++;
     }
@@ -65,7 +68,8 @@ int main(int argc, char** argv){
     std::vector<DriverSDK::digitTargetStruct> digitTargetData;
     std::vector<DriverSDK::digitActualStruct> digitActualData;
     i = 0;
-    while(i < digitNr){
+    while (i < digitNr)
+    {
         digitTargetData.push_back(DriverSDK::digitTargetStruct{});
         digitActualData.push_back(DriverSDK::digitActualStruct{});
         i++;
@@ -73,19 +77,22 @@ int main(int argc, char** argv){
     std::vector<DriverSDK::motorTargetStruct> motorTargetData;
     std::vector<DriverSDK::motorActualStruct> motorActualData;
     i = 0;
-    while(i < motorNr){
+    while (i < motorNr)
+    {
         motorTargetData.push_back(DriverSDK::motorTargetStruct{});
         motorActualData.push_back(DriverSDK::motorActualStruct{});
         i++;
     }
     std::vector<DriverSDK::sensorStruct> sensorData;
     i = 0;
-    while(i < 2){
+    while (i < 2)
+    {
         sensorData.push_back(DriverSDK::sensorStruct{});
         i++;
     }
     i = 0;
-    while(i < 1600){
+    while (i < 1600)
+    {
         driverSDK.advance();
         usleep(4000);
         driverSDK.advance();
@@ -94,13 +101,15 @@ int main(int argc, char** argv){
         printf("imu:\t%8.3f %8.3f %8.3f\n", imuData.rpy[0], imuData.rpy[1], imuData.rpy[2]);
         driverSDK.getSensor(sensorData);
         j = 0;
-        while(j < 2){
+        while (j < 2)
+        {
             printf("sensor%02d:\t%8.3f %8.3f %8.3f %8.3f %8.3f %8.3f\n", j + 1, sensorData[j].F[0], sensorData[j].F[1], sensorData[j].F[2], sensorData[j].M[0], sensorData[j].M[1], sensorData[j].M[2]);
             j++;
         }
         driverSDK.getMotorActual(motorActualData);
         j = 0;
-        while(j < motorNr){
+        while (j < motorNr)
+        {
             printf("motor%02d:\t%8.3f %8d %8d %8d\n", j + 1, motorActualData[j].pos, motorActualData[j].temp, motorActualData[j].statusWord, motorActualData[j].errorCode);
             j++;
         }
@@ -112,24 +121,28 @@ int main(int argc, char** argv){
     }
     float motorPositions[motorNr];
     i = 0;
-    while(i < motorNr){
+    while (i < motorNr)
+    {
         motorPositions[i] = motorActualData[i].pos;
         // motorTargetData[i].enabled = 1;
         i++;
     }
     i = 0;
-    while(i < 3200){
+    while (i < 3200)
+    {
         driverSDK.getIMU(imuData);
         printf("imu:\t%8.3f %8.3f %8.3f\n", imuData.rpy[0], imuData.rpy[1], imuData.rpy[2]);
         driverSDK.getSensor(sensorData);
         j = 0;
-        while(j < 2){
+        while (j < 2)
+        {
             printf("sensor%02d:\t%8.3f %8.3f %8.3f %8.3f %8.3f %8.3f\n", j + 1, sensorData[j].F[0], sensorData[j].F[1], sensorData[j].F[2], sensorData[j].M[0], sensorData[j].M[1], sensorData[j].M[2]);
             j++;
         }
         driverSDK.getMotorActual(motorActualData);
         j = 0;
-        while(j < motorNr){
+        while (j < motorNr)
+        {
             motorTargetData[j].pos = motorPositions[j] * std::cos(DriverSDK::Pi / 2.0 * (float)i / 3200.0);
             printf("motor%02d:\t%8.3f %8d %8d %8d\n", j + 1, motorActualData[j].pos, motorActualData[j].temp, motorActualData[j].statusWord, motorActualData[j].errorCode);
             j++;
@@ -139,23 +152,27 @@ int main(int argc, char** argv){
         i++;
     }
     i = 0;
-    while(i < motorNr){
+    while (i < motorNr)
+    {
         motorTargetData[i].enabled = 0;
         i++;
     }
     i = 0;
-    while(i < 1600){
+    while (i < 1600)
+    {
         driverSDK.getIMU(imuData);
         printf("imu:\t%8.3f %8.3f %8.3f\n", imuData.rpy[0], imuData.rpy[1], imuData.rpy[2]);
         driverSDK.getSensor(sensorData);
         j = 0;
-        while(j < 2){
+        while (j < 2)
+        {
             printf("sensor%02d:\t%8.3f %8.3f %8.3f %8.3f %8.3f %8.3f\n", j + 1, sensorData[j].F[0], sensorData[j].F[1], sensorData[j].F[2], sensorData[j].M[0], sensorData[j].M[1], sensorData[j].M[2]);
             j++;
         }
         driverSDK.getMotorActual(motorActualData);
         j = 0;
-        while(j < motorNr){
+        while (j < motorNr)
+        {
             motorTargetData[j].pos = motorActualData[j].pos;
             printf("motor%02d:\t%8.3f %8d %8d %8d\n", j + 1, motorActualData[j].pos, motorActualData[j].temp, motorActualData[j].statusWord, motorActualData[j].errorCode);
             j++;
@@ -165,18 +182,21 @@ int main(int argc, char** argv){
         i++;
     }
     i = 0;
-    while(i < 3200){
+    while (i < 3200)
+    {
         driverSDK.getIMU(imuData);
         printf("imu:\t%8.3f %8.3f %8.3f\n", imuData.rpy[0], imuData.rpy[1], imuData.rpy[2]);
         driverSDK.getSensor(sensorData);
         j = 0;
-        while(j < 2){
+        while (j < 2)
+        {
             printf("sensor%02d:\t%8.3f %8.3f %8.3f %8.3f %8.3f %8.3f\n", j + 1, sensorData[j].F[0], sensorData[j].F[1], sensorData[j].F[2], sensorData[j].M[0], sensorData[j].M[1], sensorData[j].M[2]);
             j++;
         }
         driverSDK.getMotorActual(motorActualData);
         j = 0;
-        while(j < motorNr){
+        while (j < motorNr)
+        {
             driverSDK.sendMotorSDORequest(sdoData[j]);
             driverSDK.recvMotorSDOResponse(sdoData[j]);
             motorTargetData[j].pos = motorActualData[j].pos;
@@ -188,7 +208,8 @@ int main(int argc, char** argv){
         i++;
     }
     i = 0;
-    while(i < motorNr){
+    while (i < motorNr)
+    {
         driverSDK.advance();
         usleep(4000);
         // printf("motor%02d CountBias %d\n", i + 1, driverSDK.calibrate(i));
@@ -197,17 +218,21 @@ int main(int argc, char** argv){
         i++;
     }
     i = 0;
-    while(i < digitNr){
+    while (i < digitNr)
+    {
         digitTargetData[i].pos = 0;
         i++;
     }
     i = 0;
-    while(i < 128){
+    while (i < 128)
+    {
         driverSDK.getDigitActual(digitActualData);
         printf("digits:\t");
         j = 0;
-        while(j < digitNr){
-            if(i % 8 == 0){
+        while (j < digitNr)
+        {
+            if (i % 8 == 0)
+            {
                 digitTargetData[j].pos = std::abs(digitTargetData[j].pos - 90);
             }
             printf("%8d\t", digitActualData[j].pos);
@@ -215,8 +240,10 @@ int main(int argc, char** argv){
         }
         printf("\n");
         j = 0;
-        while(j < 192){
-            if(i % 8 == 0){
+        while (j < 192)
+        {
+            if (i % 8 == 0)
+            {
                 driverSDK.setDigitTarget(digitTargetData);
             }
             driverSDK.advance();

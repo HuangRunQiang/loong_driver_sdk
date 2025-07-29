@@ -18,276 +18,342 @@
 #include "config_xml.h"
 #include <limits>
 
-namespace DriverSDK{
-ConfigXML::ConfigXML(char const* file){
-    this->file = (char*)malloc(strlen(file) + 1);
-    strcpy(this->file, file);
-    xmlDoc.LoadFile(file);
-}
-
-int ConfigXML::writeMotorParameter(int const alias, char const* parameter, float const value){
-    tinyxml2::XMLElement* motorElement = xmlDoc.FirstChildElement("Config")->FirstChildElement("Motors")->FirstChildElement("Motor");
-    while(motorElement != nullptr){
-        if(motorElement->IntAttribute("alias") == alias){
-            motorElement->FirstChildElement(parameter)->SetText(value);
-            return 0;
-        }
-        motorElement = motorElement->NextSiblingElement("Motor");
+namespace DriverSDK
+{
+    ConfigXML::ConfigXML(char const *file)
+    {
+        this->file = (char *)malloc(strlen(file) + 1);
+        strcpy(this->file, file);
+        xmlDoc.LoadFile(file);
     }
-    return -1;
-}
 
-float ConfigXML::readMotorParameter(int const alias, char const* parameter){
-    tinyxml2::XMLElement* motorElement = xmlDoc.FirstChildElement("Config")->FirstChildElement("Motors")->FirstChildElement("Motor");
-    while(motorElement != nullptr){
-        if(motorElement->IntAttribute("alias") == alias){
-            return motorElement->FirstChildElement(parameter)->FloatText();
+    int ConfigXML::writeMotorParameter(int const alias, char const *parameter, float const value)
+    {
+        tinyxml2::XMLElement *motorElement = xmlDoc.FirstChildElement("Config")->FirstChildElement("Motors")->FirstChildElement("Motor");
+        while (motorElement != nullptr)
+        {
+            if (motorElement->IntAttribute("alias") == alias)
+            {
+                motorElement->FirstChildElement(parameter)->SetText(value);
+                return 0;
+            }
+            motorElement = motorElement->NextSiblingElement("Motor");
         }
-        motorElement = motorElement->NextSiblingElement("Motor");
+        return -1;
     }
-    return std::numeric_limits<float>::min();
-}
 
-std::vector<std::vector<int>> ConfigXML::motorAlias(){
-    std::vector<std::vector<int>> ret;
-    tinyxml2::XMLElement* motorElement = xmlDoc.FirstChildElement("Config")->FirstChildElement("Motors")->FirstChildElement("Motor");
-    while(motorElement != nullptr){
-        int limb = motorElement->IntAttribute("limb"), motor = motorElement->IntAttribute("motor");
-        while(ret.size() <= limb){
+    float ConfigXML::readMotorParameter(int const alias, char const *parameter)
+    {
+        tinyxml2::XMLElement *motorElement = xmlDoc.FirstChildElement("Config")->FirstChildElement("Motors")->FirstChildElement("Motor");
+        while (motorElement != nullptr)
+        {
+            if (motorElement->IntAttribute("alias") == alias)
+            {
+                return motorElement->FirstChildElement(parameter)->FloatText();
+            }
+            motorElement = motorElement->NextSiblingElement("Motor");
+        }
+        return std::numeric_limits<float>::min();
+    }
+
+    std::vector<std::vector<int>> ConfigXML::motorAlias()
+    {
+        std::vector<std::vector<int>> ret;
+        tinyxml2::XMLElement *motorElement = xmlDoc.FirstChildElement("Config")->FirstChildElement("Motors")->FirstChildElement("Motor");
+        while (motorElement != nullptr)
+        {
+            int limb = motorElement->IntAttribute("limb"), motor = motorElement->IntAttribute("motor");
+            while (ret.size() <= limb)
+            {
+                ret.emplace_back(std::vector<int>());
+            }
+            while (ret[limb].size() <= motor)
+            {
+                ret[limb].push_back(0);
+            }
+            ret[limb][motor] = motorElement->IntAttribute("alias");
+            motorElement = motorElement->NextSiblingElement("Motor");
+        }
+        while (ret.size() < 6)
+        {
             ret.emplace_back(std::vector<int>());
         }
-        while(ret[limb].size() <= motor){ 
-            ret[limb].push_back(0);
-        }
-        ret[limb][motor] = motorElement->IntAttribute("alias");
-        motorElement = motorElement->NextSiblingElement("Motor");
+        return ret;
     }
-    while(ret.size() < 6){
-        ret.emplace_back(std::vector<int>());
-    }
-    return ret;
-}
 
-std::vector<std::vector<int>> ConfigXML::domainDivision(char const* bus){
-    std::vector<std::vector<int>> ret;
-    tinyxml2::XMLElement* domainElement = xmlDoc.FirstChildElement("Config")->FirstChildElement(bus)->FirstChildElement("Domains")->FirstChildElement("Domain");
-    while(domainElement != nullptr){
-        int master = domainElement->IntAttribute("master"), order = domainElement->IntAttribute("order");
-        while(ret.size() <= master){
-            ret.emplace_back(std::vector<int>());
-        }
-        while(ret[master].size() <= order){
-            ret[master].push_back(1);
-        }
-        ret[master][order] = domainElement->IntAttribute("division");
-        domainElement = domainElement->NextSiblingElement("Domain");
-    }
-    return ret;
-}
-
-int ConfigXML::dof(char const* bus, char const* type){
-    tinyxml2::XMLElement* categoryElement = xmlDoc.FirstChildElement("Config")->FirstChildElement(bus)->FirstChildElement("Categories")->FirstChildElement("Category");
-    while(categoryElement != nullptr){
-        tinyxml2::XMLElement* typeElement = categoryElement->FirstChildElement("Type");
-        while(typeElement != nullptr){
-            if(strcmp(typeElement->GetText(), type) == 0){
-                return typeElement->IntAttribute("dof");
+    std::vector<std::vector<int>> ConfigXML::domainDivision(char const *bus)
+    {
+        std::vector<std::vector<int>> ret;
+        tinyxml2::XMLElement *domainElement = xmlDoc.FirstChildElement("Config")->FirstChildElement(bus)->FirstChildElement("Domains")->FirstChildElement("Domain");
+        while (domainElement != nullptr)
+        {
+            int master = domainElement->IntAttribute("master"), order = domainElement->IntAttribute("order");
+            while (ret.size() <= master)
+            {
+                ret.emplace_back(std::vector<int>());
             }
-            typeElement = typeElement->NextSiblingElement("Type");
-        }
-        categoryElement = categoryElement->NextSiblingElement("Category");
-    }
-    return 0;
-}
-
-std::string ConfigXML::imuDevice(){
-    return xmlDoc.FirstChildElement("Config")->FirstChildElement("IMU")->Attribute("device");
-}
-
-int ConfigXML::imuBaudrate(){
-    return xmlDoc.FirstChildElement("Config")->FirstChildElement("IMU")->IntAttribute("baudrate");
-}
-
-std::string ConfigXML::device(char const* bus, int const order, char const* name){
-    tinyxml2::XMLElement* masterElement = xmlDoc.FirstChildElement("Config")->FirstChildElement(bus)->FirstChildElement("Masters")->FirstChildElement("Master");
-    while(masterElement != nullptr){
-        if(masterElement->IntAttribute("order") == order){
-            return masterElement->Attribute(name);
-        }
-        masterElement = masterElement->NextSiblingElement("Master");
-    }
-    return "";
-}
-
-int ConfigXML::baudrate(char const* bus, int const order){
-    tinyxml2::XMLElement* masterElement = xmlDoc.FirstChildElement("Config")->FirstChildElement(bus)->FirstChildElement("Masters")->FirstChildElement("Master");
-    while(masterElement != nullptr){
-        if(masterElement->IntAttribute("order") == order){
-            return masterElement->IntAttribute("baudrate");
-        }
-        masterElement = masterElement->NextSiblingElement("Master");
-    }
-    return 115200;
-}
-
-long ConfigXML::period(char const* bus, int const order){
-    tinyxml2::XMLElement* masterElement = xmlDoc.FirstChildElement("Config")->FirstChildElement(bus)->FirstChildElement("Masters")->FirstChildElement("Master");
-    while(masterElement != nullptr){
-        if(masterElement->IntAttribute("order") == order){
-            return masterElement->Int64Attribute("period");
-        }
-        masterElement = masterElement->NextSiblingElement("Master");
-    }
-    return 1000000L;
-}
-
-bool ConfigXML::dc(char const* bus, int const order){
-    tinyxml2::XMLElement* masterElement = xmlDoc.FirstChildElement("Config")->FirstChildElement(bus)->FirstChildElement("Masters")->FirstChildElement("Master");
-    while(masterElement != nullptr){
-        if(masterElement->IntAttribute("order") == order){
-            return masterElement->BoolAttribute("dc");
-        }
-        masterElement = masterElement->NextSiblingElement("Master");
-    }
-    return false;
-}
-
-tinyxml2::XMLElement* ConfigXML::busDevice(char const* bus, char const* VendorID, char const* ProductCode){
-    tinyxml2::XMLElement* deviceElement = xmlDoc.FirstChildElement("Config")->FirstChildElement(bus)->FirstChildElement("Devices")->FirstChildElement("Device");
-    while(deviceElement != nullptr){
-        if(strcmp(deviceElement->FirstChildElement("VendorID")->GetText(), VendorID) == 0 && strcmp(deviceElement->FirstChildElement("ProductCode")->GetText(), ProductCode) == 0){
-            return deviceElement;
-        }
-        deviceElement = deviceElement->NextSiblingElement("Device");
-    }
-    return nullptr;
-}
-
-tinyxml2::XMLElement* ConfigXML::busDevice(char const* bus, char const* type){
-    tinyxml2::XMLElement* deviceElement = xmlDoc.FirstChildElement("Config")->FirstChildElement(bus)->FirstChildElement("Devices")->FirstChildElement("Device");
-    while(deviceElement != nullptr){
-        if(strcmp(deviceElement->Attribute("type"), type) == 0){
-            return deviceElement;
-        }
-        deviceElement = deviceElement->NextSiblingElement("Device");
-    }
-    return nullptr;
-}
-
-std::string ConfigXML::type(tinyxml2::XMLElement const* deviceElement){
-    return deviceElement->Attribute("type");
-}
-
-std::string ConfigXML::category(char const* bus, char const* type){
-    tinyxml2::XMLElement* categoryElement = xmlDoc.FirstChildElement("Config")->FirstChildElement(bus)->FirstChildElement("Categories")->FirstChildElement("Category");
-    while(categoryElement != nullptr){
-        tinyxml2::XMLElement* typeElement = categoryElement->FirstChildElement("Type");
-        while(typeElement != nullptr){
-            if(strcmp(typeElement->GetText(), type) == 0){
-                return categoryElement->Attribute("name");
+            while (ret[master].size() <= order)
+            {
+                ret[master].push_back(1);
             }
-            typeElement = typeElement->NextSiblingElement("Type");
+            ret[master][order] = domainElement->IntAttribute("division");
+            domainElement = domainElement->NextSiblingElement("Domain");
         }
-        categoryElement = categoryElement->NextSiblingElement("Category");
+        return ret;
     }
-    return "";
-}
 
-unsigned int ConfigXML::vendorID(tinyxml2::XMLElement const* deviceElement){
-    return strtoul(deviceElement->FirstChildElement("VendorID")->GetText(), nullptr, 16);
-}
+    int ConfigXML::dof(char const *bus, char const *type)
+    {
+        tinyxml2::XMLElement *categoryElement = xmlDoc.FirstChildElement("Config")->FirstChildElement(bus)->FirstChildElement("Categories")->FirstChildElement("Category");
+        while (categoryElement != nullptr)
+        {
+            tinyxml2::XMLElement *typeElement = categoryElement->FirstChildElement("Type");
+            while (typeElement != nullptr)
+            {
+                if (strcmp(typeElement->GetText(), type) == 0)
+                {
+                    return typeElement->IntAttribute("dof");
+                }
+                typeElement = typeElement->NextSiblingElement("Type");
+            }
+            categoryElement = categoryElement->NextSiblingElement("Category");
+        }
+        return 0;
+    }
 
-unsigned int ConfigXML::productCode(tinyxml2::XMLElement const* deviceElement){
-    return strtoul(deviceElement->FirstChildElement("ProductCode")->GetText(), nullptr, 16);
-}
+    std::string ConfigXML::imuDevice()
+    {
+        return xmlDoc.FirstChildElement("Config")->FirstChildElement("IMU")->Attribute("device");
+    }
 
-std::vector<std::vector<std::string>> ConfigXML::pdos(tinyxml2::XMLElement* const deviceElement, char const* rxtx){
-    std::vector<std::vector<std::string>> ret;
-    tinyxml2::XMLElement* pdosElement = deviceElement->FirstChildElement(rxtx);
-    while(pdosElement != nullptr){
-        std::vector<std::string> tmp;
-        tmp.push_back(pdosElement->Attribute("index"));
-        tinyxml2::XMLElement* objectElement = pdosElement->FirstChildElement("Object");
-        while(objectElement != nullptr){
-            tmp.push_back(objectElement->GetText());
+    int ConfigXML::imuBaudrate()
+    {
+        return xmlDoc.FirstChildElement("Config")->FirstChildElement("IMU")->IntAttribute("baudrate");
+    }
+
+    std::string ConfigXML::device(char const *bus, int const order, char const *name)
+    {
+        tinyxml2::XMLElement *masterElement = xmlDoc.FirstChildElement("Config")->FirstChildElement(bus)->FirstChildElement("Masters")->FirstChildElement("Master");
+        while (masterElement != nullptr)
+        {
+            if (masterElement->IntAttribute("order") == order)
+            {
+                return masterElement->Attribute(name);
+            }
+            masterElement = masterElement->NextSiblingElement("Master");
+        }
+        return "";
+    }
+
+    int ConfigXML::baudrate(char const *bus, int const order)
+    {
+        tinyxml2::XMLElement *masterElement = xmlDoc.FirstChildElement("Config")->FirstChildElement(bus)->FirstChildElement("Masters")->FirstChildElement("Master");
+        while (masterElement != nullptr)
+        {
+            if (masterElement->IntAttribute("order") == order)
+            {
+                return masterElement->IntAttribute("baudrate");
+            }
+            masterElement = masterElement->NextSiblingElement("Master");
+        }
+        return 115200;
+    }
+
+    long ConfigXML::period(char const *bus, int const order)
+    {
+        tinyxml2::XMLElement *masterElement = xmlDoc.FirstChildElement("Config")->FirstChildElement(bus)->FirstChildElement("Masters")->FirstChildElement("Master");
+        while (masterElement != nullptr)
+        {
+            if (masterElement->IntAttribute("order") == order)
+            {
+                return masterElement->Int64Attribute("period");
+            }
+            masterElement = masterElement->NextSiblingElement("Master");
+        }
+        return 1000000L;
+    }
+
+    bool ConfigXML::dc(char const *bus, int const order)
+    {
+        tinyxml2::XMLElement *masterElement = xmlDoc.FirstChildElement("Config")->FirstChildElement(bus)->FirstChildElement("Masters")->FirstChildElement("Master");
+        while (masterElement != nullptr)
+        {
+            if (masterElement->IntAttribute("order") == order)
+            {
+                return masterElement->BoolAttribute("dc");
+            }
+            masterElement = masterElement->NextSiblingElement("Master");
+        }
+        return false;
+    }
+
+    tinyxml2::XMLElement *ConfigXML::busDevice(char const *bus, char const *VendorID, char const *ProductCode)
+    {
+        tinyxml2::XMLElement *deviceElement = xmlDoc.FirstChildElement("Config")->FirstChildElement(bus)->FirstChildElement("Devices")->FirstChildElement("Device");
+        while (deviceElement != nullptr)
+        {
+            if (strcmp(deviceElement->FirstChildElement("VendorID")->GetText(), VendorID) == 0 && strcmp(deviceElement->FirstChildElement("ProductCode")->GetText(), ProductCode) == 0)
+            {
+                return deviceElement;
+            }
+            deviceElement = deviceElement->NextSiblingElement("Device");
+        }
+        return nullptr;
+    }
+
+    tinyxml2::XMLElement *ConfigXML::busDevice(char const *bus, char const *type)
+    {
+        tinyxml2::XMLElement *deviceElement = xmlDoc.FirstChildElement("Config")->FirstChildElement(bus)->FirstChildElement("Devices")->FirstChildElement("Device");
+        while (deviceElement != nullptr)
+        {
+            if (strcmp(deviceElement->Attribute("type"), type) == 0)
+            {
+                return deviceElement;
+            }
+            deviceElement = deviceElement->NextSiblingElement("Device");
+        }
+        return nullptr;
+    }
+
+    std::string ConfigXML::type(tinyxml2::XMLElement const *deviceElement)
+    {
+        return deviceElement->Attribute("type");
+    }
+
+    std::string ConfigXML::category(char const *bus, char const *type)
+    {
+        tinyxml2::XMLElement *categoryElement = xmlDoc.FirstChildElement("Config")->FirstChildElement(bus)->FirstChildElement("Categories")->FirstChildElement("Category");
+        while (categoryElement != nullptr)
+        {
+            tinyxml2::XMLElement *typeElement = categoryElement->FirstChildElement("Type");
+            while (typeElement != nullptr)
+            {
+                if (strcmp(typeElement->GetText(), type) == 0)
+                {
+                    return categoryElement->Attribute("name");
+                }
+                typeElement = typeElement->NextSiblingElement("Type");
+            }
+            categoryElement = categoryElement->NextSiblingElement("Category");
+        }
+        return "";
+    }
+
+    unsigned int ConfigXML::vendorID(tinyxml2::XMLElement const *deviceElement)
+    {
+        return strtoul(deviceElement->FirstChildElement("VendorID")->GetText(), nullptr, 16);
+    }
+
+    unsigned int ConfigXML::productCode(tinyxml2::XMLElement const *deviceElement)
+    {
+        return strtoul(deviceElement->FirstChildElement("ProductCode")->GetText(), nullptr, 16);
+    }
+
+    std::vector<std::vector<std::string>> ConfigXML::pdos(tinyxml2::XMLElement *const deviceElement, char const *rxtx)
+    {
+        std::vector<std::vector<std::string>> ret;
+        tinyxml2::XMLElement *pdosElement = deviceElement->FirstChildElement(rxtx);
+        while (pdosElement != nullptr)
+        {
+            std::vector<std::string> tmp;
+            tmp.push_back(pdosElement->Attribute("index"));
+            tinyxml2::XMLElement *objectElement = pdosElement->FirstChildElement("Object");
+            while (objectElement != nullptr)
+            {
+                tmp.push_back(objectElement->GetText());
+                objectElement = objectElement->NextSiblingElement("Object");
+            }
+            ret.push_back(tmp);
+            pdosElement = pdosElement->NextSiblingElement(rxtx);
+        }
+        return ret;
+    }
+
+    std::vector<std::string> ConfigXML::entry(tinyxml2::XMLElement *const deviceElement, char const *object)
+    {
+        std::vector<std::string> ret;
+        tinyxml2::XMLElement *dictionaryElement = deviceElement->FirstChildElement("Dictionary");
+        ret.push_back(object);
+        tinyxml2::XMLElement *objectElement = dictionaryElement->FirstChildElement("Object");
+        while (objectElement != nullptr)
+        {
+            if (strcmp(objectElement->GetText(), object) == 0)
+            {
+                ret.push_back(objectElement->Attribute("index"));
+                ret.push_back(objectElement->Attribute("subindex"));
+                ret.push_back(objectElement->Attribute("signed"));
+                ret.push_back(objectElement->Attribute("bit_length"));
+                ret.push_back(objectElement->Attribute("operation"));
+                return ret;
+            }
             objectElement = objectElement->NextSiblingElement("Object");
         }
-        ret.push_back(tmp);
-        pdosElement = pdosElement->NextSiblingElement(rxtx);
+        return ret;
     }
-    return ret;
-}
 
-std::vector<std::string> ConfigXML::entry(tinyxml2::XMLElement* const deviceElement, char const* object){
-    std::vector<std::string> ret;
-    tinyxml2::XMLElement* dictionaryElement = deviceElement->FirstChildElement("Dictionary");
-    ret.push_back(object);
-    tinyxml2::XMLElement* objectElement = dictionaryElement->FirstChildElement("Object");
-    while(objectElement != nullptr){
-        if(strcmp(objectElement->GetText(), object) == 0){
-            ret.push_back(objectElement->Attribute("index"));
-            ret.push_back(objectElement->Attribute("subindex"));
-            ret.push_back(objectElement->Attribute("signed"));
-            ret.push_back(objectElement->Attribute("bit_length"));
-            ret.push_back(objectElement->Attribute("operation"));
-            return ret;
-        }
-        objectElement = objectElement->NextSiblingElement("Object");
-    }
-    return ret;
-}
-
-std::vector<std::map<int, std::string>> ConfigXML::alias2type(char const* bus){
-    std::vector<std::map<int, std::string>> ret;
-    tinyxml2::XMLElement* slaveElement = xmlDoc.FirstChildElement("Config")->FirstChildElement(bus)->FirstChildElement("Slaves")->FirstChildElement("Slave");
-    while(slaveElement != nullptr){
-        if(slaveElement->IntText() != 1){
+    std::vector<std::map<int, std::string>> ConfigXML::alias2type(char const *bus)
+    {
+        std::vector<std::map<int, std::string>> ret;
+        tinyxml2::XMLElement *slaveElement = xmlDoc.FirstChildElement("Config")->FirstChildElement(bus)->FirstChildElement("Slaves")->FirstChildElement("Slave");
+        while (slaveElement != nullptr)
+        {
+            if (slaveElement->IntText() != 1)
+            {
+                slaveElement = slaveElement->NextSiblingElement("Slave");
+                continue;
+            }
+            int master = slaveElement->IntAttribute("master");
+            while (ret.size() <= master)
+            {
+                ret.emplace_back(std::map<int, std::string>());
+            }
+            int alias = slaveElement->IntAttribute("alias");
+            if (ret[master].find(alias) != ret[master].end())
+            {
+                printf("duplicate alias on bus %s\n", bus);
+                exit(-1);
+            }
+            ret[master].insert(std::make_pair(alias, slaveElement->Attribute("type")));
             slaveElement = slaveElement->NextSiblingElement("Slave");
-            continue;
         }
-        int master = slaveElement->IntAttribute("master");
-        while(ret.size() <= master){
-            ret.emplace_back(std::map<int, std::string>());
-        }
-        int alias = slaveElement->IntAttribute("alias");
-        if(ret[master].find(alias) != ret[master].end()){
-            printf("duplicate alias on bus %s\n", bus);
-            exit(-1);
-        }
-        ret[master].insert(std::make_pair(alias, slaveElement->Attribute("type")));
-        slaveElement = slaveElement->NextSiblingElement("Slave");
+        return ret;
     }
-    return ret;
-}
 
-std::vector<std::map<int, int>> ConfigXML::alias2domain(char const* bus){
-    std::vector<std::map<int, int>> ret;
-    tinyxml2::XMLElement* slaveElement = xmlDoc.FirstChildElement("Config")->FirstChildElement(bus)->FirstChildElement("Slaves")->FirstChildElement("Slave");
-    while(slaveElement != nullptr){
-        if(slaveElement->IntText() != 1){
+    std::vector<std::map<int, int>> ConfigXML::alias2domain(char const *bus)
+    {
+        std::vector<std::map<int, int>> ret;
+        tinyxml2::XMLElement *slaveElement = xmlDoc.FirstChildElement("Config")->FirstChildElement(bus)->FirstChildElement("Slaves")->FirstChildElement("Slave");
+        while (slaveElement != nullptr)
+        {
+            if (slaveElement->IntText() != 1)
+            {
+                slaveElement = slaveElement->NextSiblingElement("Slave");
+                continue;
+            }
+            int master = slaveElement->IntAttribute("master");
+            while (ret.size() <= master)
+            {
+                ret.emplace_back(std::map<int, int>());
+            }
+            int alias = slaveElement->IntAttribute("alias");
+            if (ret[master].find(alias) != ret[master].end())
+            {
+                printf("duplicate alias on bus %s\n", bus);
+                exit(-1);
+            }
+            ret[master].insert(std::make_pair(alias, slaveElement->IntAttribute("domain")));
             slaveElement = slaveElement->NextSiblingElement("Slave");
-            continue;
         }
-        int master = slaveElement->IntAttribute("master");
-        while(ret.size() <= master){
-            ret.emplace_back(std::map<int, int>());
-        }
-        int alias = slaveElement->IntAttribute("alias");
-        if(ret[master].find(alias) != ret[master].end()){
-            printf("duplicate alias on bus %s\n", bus);
-            exit(-1);
-        }
-        ret[master].insert(std::make_pair(alias, slaveElement->IntAttribute("domain")));
-        slaveElement = slaveElement->NextSiblingElement("Slave");
+        return ret;
     }
-    return ret;
-}
 
-tinyxml2::XMLError ConfigXML::save(){
-    return xmlDoc.SaveFile(file);
-}
+    tinyxml2::XMLError ConfigXML::save()
+    {
+        return xmlDoc.SaveFile(file);
+    }
 
-ConfigXML::~ConfigXML(){
-    free(file);
-}
+    ConfigXML::~ConfigXML()
+    {
+        free(file);
+    }
 }
