@@ -34,7 +34,7 @@ namespace DriverSDK                                                        // �
         SwapNode *previous, *next;                                         // 前一个和后一个节点指针，形成双向链表
         SwapNode(int const size);                                          // 构造函数声明，参数为缓冲区大小
         ~SwapNode();                                                       // 析构函数声明
-    };                                                                     // SwapNode类定义结束
+    };                                                                    
 
     // 定义交换列表类
     class SwapList                                                         
@@ -46,11 +46,11 @@ namespace DriverSDK                                                        // �
         void copyTo(unsigned char *domainPtr, int const domainSize);       // 复制数据到域指针的方法声明
         void copyFrom(unsigned char const *domainPtr, int const domainSize);// 从域指针复制数据的方法声明
         ~SwapList();                                                       // 析构函数声明
-    };                                                                     // SwapList类定义结束
+    };                                                                     
 
     // 定义SDO消息结构体
     struct SDOMsg                                                          
-    {                                                                      // 结构体定义开始
+    {                                                                      
         ec_sdo_request_t *sdoHandler;                                      // SDO请求处理器指针
         long value;                                                        // SDO数值
         int alias;                                                         // 别名标识符
@@ -61,11 +61,11 @@ namespace DriverSDK                                                        // �
         unsigned char bitLength; // 8, 16 or 32                           // 位长度：8、16或32位
         unsigned char operation; // 0: write; 1: read                     // 操作类型：0写入，1读取
         int recycled;                                                      // 回收标识
-    };                                                                     // SDOMsg结构体定义结束
+    };                                                                     
 
     // 定义驱动器接收数据结构体
     struct DriverRxData                                                    
-    {                                                                      // 结构体定义开始
+    {                                                                      
         int TargetPosition;                                                // 目标位置
         int TargetVelocity;                                                // 目标速度
         short TargetTorque;                                                // 目标扭矩
@@ -74,11 +74,11 @@ namespace DriverSDK                                                        // �
         char Undefined;                                                    // 未定义字段
         short TorqueOffset;                                                // 扭矩偏移
         int VelocityOffset;                                                // 速度偏移
-    };                                                                     // DriverRxData结构体定义结束
+    };                                                                     
 
     // 定义驱动器发送数据结构体
     struct DriverTxData                                                    
-    {                                                                      // 结构体定义开始
+    {                                                                     
         int ActualPosition;                                                // 实际位置
         int ActualVelocity;                                                // 实际速度
         short ActualTorque;                                                // 实际扭矩
@@ -86,7 +86,7 @@ namespace DriverSDK                                                        // �
         char ModeDisplay;                                                  // 模式显示
         char Undefined;                                                    // 未定义字段
         unsigned short ErrorCode;                                          // 错误代码
-    };                                                                     // DriverTxData结构体定义结束
+    };                                                                   
 
     // 定义电机参数类
     class MotorParameters                                                  
@@ -101,7 +101,7 @@ namespace DriverSDK                                                        // �
 
     // 定义手部接收数据结构体
     struct HandRxData                                                     
-    {                                                                      // 结构体定义开始
+    {                                                                      
         unsigned char stop;                                                // 停止命令
         char Undefined;                                                    // 未定义字段
         unsigned short TargetSpeedThumb;                                   // 拇指目标速度
@@ -126,7 +126,7 @@ namespace DriverSDK                                                        // �
 
     // 定义手部发送数据结构体
     struct HandTxData                                                     
-    {                                                                      // 结构体定义开始
+    {                                                                      
         unsigned short TouchSensorThumb[4];                                // 拇指触觉传感器数组（4个传感器）
         unsigned short TouchSensorForefinger[4];                           // 食指触觉传感器数组（4个传感器）
         unsigned short TouchSensorMiddle[4];                               // 中指触觉传感器数组（4个传感器）
@@ -148,19 +148,19 @@ namespace DriverSDK                                                        // �
 
     // 定义数字输入接收数据结构体
     struct DigitRxData                                                    
-    {                                                                      // 结构体定义开始
+    {                                                                      
         unsigned short TargetPosition;                                     // 目标位置
     };                                                                     // DigitRxData结构体定义结束
 
     // 定义数字输入发送数据结构体
     struct DigitTxData                                                    
-    {                                                                      // 结构体定义开始
+    {                                                                      
         unsigned short ActualPosition;                                     // 实际位置
     };                                                                     // DigitTxData结构体定义结束
 
     // 定义转换器数据结构体
     struct ConverterDatum                                                 
-    {                                                                      // 结构体定义开始
+    {                                                                      
         unsigned short Index;                                              // 索引
         unsigned short ID;                                                 // 标识符
         unsigned short Length;                                             // 数据长度
@@ -169,13 +169,13 @@ namespace DriverSDK                                                        // �
 
     // 定义转换器接收数据结构体
     struct ConverterRxData                                                
-    {                                                                      // 结构体定义开始
+    {                                                                      
         ConverterDatum channels[8];                                        // 8个通道的转换器数据
     };                                                                     // ConverterRxData结构体定义结束
 
     // 定义转换器发送数据结构体
     struct ConverterTxData                                                
-    {                                                                      // 结构体定义开始
+    {                                                                      
         ConverterDatum channels[8];                                        // 8个通道的转换器数据
     };                                                                     // ConverterTxData结构体定义结束
 
@@ -190,7 +190,7 @@ namespace DriverSDK                                                        // �
 
     // 定义传感器接收数据结构体
     struct SensorRxData                                                   
-    {                                                                      // 结构体定义开始
+    {                                                                      
         int ControlCode;                                                   // 控制代码
         float x;                                                           // X轴数据
         float y;                                                           // Y轴数据
@@ -203,7 +203,7 @@ namespace DriverSDK                                                        // �
 
     // 定义传感器发送数据结构体
     struct SensorTxData                                                   
-    {                                                                      // 结构体定义开始
+    {                                                                      
         int Fx;                                                            // X轴力
         int Fy;                                                            // Y轴力
         int Fz;                                                            // Z轴力
